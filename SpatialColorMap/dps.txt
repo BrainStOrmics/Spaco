@@ -1,6 +1,0 @@
-Dependent Packages:
-
-numpy
-pandas
-scanpy
-sklearn.neighbors
