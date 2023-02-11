@@ -1,4 +1,4 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def read_requirements(path):
@@ -12,11 +12,11 @@ with open("README.md", "r", encoding="UTF-8") as fh:
 
 setup(
     name="spaco2",
-    version="0.1",
+    version="0.1.0",
     python_requires=">=3.7",
     install_requires=read_requirements("requirements.txt"),
     packages=["spaco2"],
-    author="Qianhua Zhu, Zehua Jing",
+    author="Zehua Jing, Qianhua Zhu, Hailin Pan",
     author_email="jingzehua@genomics.cn",
     description="Spaco2: Spatially constrained colorization for visualizing spatial data at single-cell resolution",
     long_description=long_description,

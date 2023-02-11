@@ -1,55 +1,100 @@
+from typing import Any, Dict, List, Literal
+
 import numpy as np
 import pandas as pd
 
-from .dist import matrix_distance
-from .mat import color_difference_matrix, find_neighbors
-from .tsp import tsp
+from .distance import perceptual_distance
+from .logging import logger_manager as lm
+from .mapping import embed_graph, map_graph_tsp
+from .utils import extract_palette
 
 
-def spatial_color(
-    color, axis, type, radius=90, knn=4, ncell=3, method="manhattan", cycle=10000
-):
-    """generate the spatial color map
-
-    args:
-      color: an array for color
-      axis: spatial axis for each cell
-      type: cell type for each cell
-      radius: radius for neighbors
-      knn: the k-nearest cells
-      ncell: the minimum cell number in a subnet for the specific cell type
-      method: method for matrix distance
-      cycle: number of cycles
+def assign_color(
+    cluster_distance_matrix: pd.DataFrame,
+    palette: List[str] = None,
+    image_palette: np.ndarray = None,
+    solver: Literal["exact", "heuristic"] = "heuristic",
+    mapping_kwargs: dict = None,
+    embed_kwargs: dict = None,
+) -> Dict[Any, str]:
     """
-    mat_type, mat_adj = find_neighbors(axis, type, radius, knn, ncell)
-    return spatial_color_cal(mat_type, mat_adj, color, method, cycle)
+    Core color mapping function for Spaco2.
 
+    Spaco2 provides 3 basic color mapping mode in this function:
+        1. Optimize the mapping of a pre-defined color palette.
+            If `palette` is provided, this function will calculate a optimized mapping
+            between clusters and pre-defined colors. This is for those who already have
+            a decent palette either for publication or aesthetic purpose.
+            Note that the final visualization performance is affected by the diversity
+            (distinguishability) of the pre-defined palette itself.
+        2. Extract colors from image.
+            When `palette` is not available or hard to collect, user can input an image
+            with desired color theme as an `image_palette`. Spaco2 will try to extract
+            discriminate colors while keeping aesthetic theme from the image, and then
+            calculate the optimized mapping between clusters and extracted colors.
+        3. Automatically generate colors within colorspace.
+            Without any given `palette` or `image_palette`, Spaco2 will automatically
+            draw colors from colorspace according to the spatial distribution of cell
+            clusters. This is the most easy-to-use mode and provides good correlation
+            between color difference and cluster neighborship, but does not guarantee
+            aesthetic performance.
 
-def spatial_color_cal(mat_type, mat_adj, color, method, cycle):
-    ins_color = np.array(color[0 : len(mat_type)])
-    ins_dist = 1e9
-    mat_color = color_difference_matrix(ins_color) + 1e-5
+    Args:
+        cluster_distance (pd.DataFrame): a `pandas.DataFrame` with unique cluster names as
+            `index` and `columns`, which contains a distance adjacent matrix for clusters,
+            representing the dissimilarity between clusters.
+        palette (List[str], optional): a list of colors (in hex). If given, `image_palette`
+            will be ignored. See `Mode 1` above. Defaults to None.
+        image_palette (np.ndarray, optional): an image in numpy array format. Should be a
+            typical RGB image of shape (x, y, 3). Ignored if `palette` is given. See `Mode 2`
+            above. Defaults to None.
+        solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
+            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
+            or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
+        mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
+            Defaults to None.
+        embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
+            Defaults to None.
 
-    mat_adj_tsp, mat_adj_tsp_score = tsp(mat_adj, cycle)
-    mat_color_tsp, mat_color_tsp_score = tsp(mat_color, cycle)
-    df_color = pd.DataFrame({"adj": mat_adj_tsp, "color": mat_color_tsp}).sort_values(
-        by="adj"
-    )["color"]
-    ins_color = ins_color[df_color]
+    Returns:
+        Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
+    """
 
-    arr_var = []
+    # Auto-generate a palette if not provided
+    if palette is None:
+        lm.main_info(f"Palette not provided.")
+        if image_palette is None:
+            # Mode 3
+            lm.main_info(f"Auto-generating color mapping from CIELAB colorspace...")
+            color_mapping = embed_graph(
+                cluster_distance=cluster_distance_matrix,
+                **embed_kwargs,
+            )
 
-    my_idx = np.concatenate(
-        (np.arange(0, len(mat_color)), np.arange(0, len(mat_color))), axis=0
+            # TODO: consider add tsp as downstream
+
+            color_mapping = {
+                k: color_mapping[k] for k in sorted(list(color_mapping.keys()))
+            }
+            return color_mapping
+        else:
+            # Mode 2
+            lm.main_info(f"Drawing appropriate colors from provided image...")
+            palette = extract_palette(
+                reference_image=image_palette, n_colors=len(cluster_distance_matrix)
+            )
+
+    # Construct color perceptual distance matrix
+    lm.main_info(f"Calculating color perceptual difference...")
+    color_distance_matrix = perceptual_distance(colors=palette) + 1e-5
+
+    # Map clusters and colors via tsp graph
+    lm.main_info(f"Optimizing color mapping...")
+    color_mapping = map_graph_tsp(
+        cluster_distance=cluster_distance_matrix,
+        color_distance=color_distance_matrix,
+        tsp_solver=solver,
+        **mapping_kwargs,
     )
-    for i in range(0, len(mat_color)):
-        idx = my_idx[i : i + len(mat_color)]
-        mat_color_sfl = np.transpose(mat_color[idx])[idx]
-        dist = matrix_distance(mat_adj, mat_color_sfl, method)
-        if dist <= ins_dist:
-            ins_dist = dist
-            ins_color = ins_color[idx]
 
-    return mat_adj_tsp_score, pd.DataFrame(
-        {"type": mat_type, "color": ins_color}, index=mat_type
-    )
+    return color_mapping
