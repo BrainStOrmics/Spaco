@@ -145,9 +145,9 @@ def tsp(
     """
 
     if solver_backend == "exact":
-        tsp_path, tsp_score = solve_tsp_local_search(distance_matrix)
-    elif solver_backend == "heuristic":
         tsp_path, tsp_score = solve_tsp_dynamic_programming(distance_matrix)
+    elif solver_backend == "heuristic":
+        tsp_path, tsp_score = solve_tsp_local_search(distance_matrix)
 
     return tsp_path, tsp_score
 

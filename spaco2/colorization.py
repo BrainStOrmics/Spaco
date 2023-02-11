@@ -24,9 +24,9 @@ def colorize(
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
-    neighbor_kwargs: dict = None,
-    mapping_kwargs: dict = None,
-    embed_kwargs: dict = None,
+    neighbor_kwargs: dict = {},
+    mapping_kwargs: dict = {},
+    embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
     """
     Colorize cell clusters based on spatial distribution, so that spatially interlaced and
@@ -71,11 +71,11 @@ def colorize(
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
-            Defaults to None.
+            Defaults to {}.
         mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
-            Defaults to None.
+            Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
-            Defaults to None.
+            Defaults to {}.
 
     Returns:
         Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
@@ -101,6 +101,8 @@ def colorize(
             cell_labels = cell_labels[
                 ~np.isin(cell_labels, list(manual_mapping.keys()))
             ]
+    else:
+        manual_mapping = {}
 
     if palette is not None:
         assert len(np.unique(cell_labels)) <= len(
@@ -108,7 +110,7 @@ def colorize(
         ), f"Palette not sufficient for {len(np.unique(cell_labels))} cell types."
 
     # Construct cluster spatial distance matrix based on cell neighborhood
-    lm.main_info(f"Calculating cluster neighborhood graph...")
+    lm.main_info(f"Calculating cluster distance graph...")
     cluster_distance_matrix = spatial_distance(
         cell_coordinates=cell_coordinates,
         cell_labels=cell_labels,
@@ -146,9 +148,9 @@ def colorize_mutiple_slices(
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
-    neighbor_kwargs: dict = None,
-    mapping_kwargs: dict = None,
-    embed_kwargs: dict = None,
+    neighbor_kwargs: dict = {},
+    mapping_kwargs: dict = {},
+    embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
     """
     Colorize cell clusters for mutiple datasets (tissue slices) based on spatial distribution.
@@ -189,11 +191,11 @@ def colorize_mutiple_slices(
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
-            Defaults to None.
+            Defaults to {}.
         mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
-            Defaults to None.
+            Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
-            Defaults to None.
+            Defaults to {}.
 
     Returns:
         Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
@@ -249,11 +251,13 @@ def colorize_mutiple_slices(
             )
             # Exclude cells with manually given color
             excluded_clusters = list(manual_mapping.keys())
+    else:
+        manual_mapping = {}
 
     # Calculate cluster distance matrix for each slice and merge
     cluster_distance_matrix_merged = pd.DataFrame()
     for i in range(len(adatas)):
-        lm.main_info(f"Calculating cluster neighborhood graph for slice {i}... ")
+        lm.main_info(f"Calculating cluster distance graph for slice {i}... ")
         cluster_distance_matrix_tmp = spatial_distance(
             cell_coordinates=adatas[i].obsm[spatial_key][
                 ~adatas[i].obs[cluster_key].isin(excluded_clusters)
@@ -271,7 +275,7 @@ def colorize_mutiple_slices(
             [cluster_distance_matrix_merged, cluster_distance_matrix_tmp]
         )
 
-    lm.main_info(f"Merging cluster neighborhood graph... ")
+    lm.main_info(f"Merging cluster distance graph... ")
     cluster_distance_matrix_merged = (
         cluster_distance_matrix_merged.groupby(by=["v1", "v2"])
         .agg(sum)
@@ -314,9 +318,9 @@ def colorize_mutiple_runs(
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
-    neighbor_kwargs: dict = None,
-    mapping_kwargs: dict = None,
-    embed_kwargs: dict = None,
+    neighbor_kwargs: dict = {},
+    mapping_kwargs: dict = {},
+    embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
     """
     Colorize cell clusters considering mutiple clustering runs (results) based on spatial distribution.
@@ -343,11 +347,11 @@ def colorize_mutiple_runs(
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
-            Defaults to None.
+            Defaults to {}.
         mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
-            Defaults to None.
+            Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
-            Defaults to None.
+            Defaults to {}.
 
     Returns:
         Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
@@ -381,7 +385,7 @@ def colorize_mutiple_runs(
     # Calculate cluster distance matrix for each slice and merge
     cluster_distance_matrix_merged = pd.DataFrame()
     for i in range(len(cluster_keys)):
-        lm.main_info(f"Calculating cluster neighborhood graph for run {i}... ")
+        lm.main_info(f"Calculating cluster distance graph for run {i}... ")
         cluster_distance_matrix_tmp = spatial_distance(
             cell_coordinates=adata.obsm[spatial_key],
             cell_labels=adata.obs[cluster_keys[i]],
@@ -395,7 +399,7 @@ def colorize_mutiple_runs(
             [cluster_distance_matrix_merged, cluster_distance_matrix_tmp]
         )
 
-    lm.main_info(f"Merging cluster neighborhood graph... ")
+    lm.main_info(f"Merging cluster distance graph... ")
     cluster_distance_matrix_merged = (
         cluster_distance_matrix_merged.groupby(by=["v1", "v2"])
         .agg(sum)

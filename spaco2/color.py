@@ -14,8 +14,8 @@ def assign_color(
     palette: List[str] = None,
     image_palette: np.ndarray = None,
     solver: Literal["exact", "heuristic"] = "heuristic",
-    mapping_kwargs: dict = None,
-    embed_kwargs: dict = None,
+    mapping_kwargs: dict = {},
+    embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
     """
     Core color mapping function for Spaco2.
@@ -52,9 +52,9 @@ def assign_color(
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
-            Defaults to None.
+            Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
-            Defaults to None.
+            Defaults to {}.
 
     Returns:
         Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
@@ -62,10 +62,12 @@ def assign_color(
 
     # Auto-generate a palette if not provided
     if palette is None:
-        lm.main_info(f"Palette not provided.")
+        lm.main_info(f"`palette` not provided.")
         if image_palette is None:
             # Mode 3
-            lm.main_info(f"Auto-generating color mapping from CIELAB colorspace...")
+            lm.main_info(
+                f"Auto-generating colors from CIE Lab colorspace...", indent_level=2
+            )
             color_mapping = embed_graph(
                 cluster_distance=cluster_distance_matrix,
                 **embed_kwargs,
@@ -79,13 +81,16 @@ def assign_color(
             return color_mapping
         else:
             # Mode 2
-            lm.main_info(f"Drawing appropriate colors from provided image...")
+            lm.main_info(f"Using `image palette`...", indent_level=2)
+            lm.main_info(
+                f"Drawing appropriate colors from provided image...", indent_level=2
+            )
             palette = extract_palette(
                 reference_image=image_palette, n_colors=len(cluster_distance_matrix)
             )
 
     # Construct color perceptual distance matrix
-    lm.main_info(f"Calculating color perceptual difference...")
+    lm.main_info(f"Calculating color distance graph...")
     color_distance_matrix = perceptual_distance(colors=palette) + 1e-5
 
     # Map clusters and colors via tsp graph
