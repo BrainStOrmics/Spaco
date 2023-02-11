@@ -3,8 +3,6 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from anndata import AnnData
-from sklearn.manifold import MDS
-from umap import UMAP
 
 try:
     from typing import Literal
@@ -46,11 +44,11 @@ def map_graph_tsp(
     ), "Clusters and colors are not in the same size."
 
     # Calculate tsp loop for clusters and colors
-    lm.main_info(f"Solving TSP for cluster graph...")
+    lm.main_info(f"Solving TSP for cluster graph...", indent_level=2)
     cluster_tsp_path, cluster_tsp_score = tsp(
         distance_matrix=-cluster_distance.to_numpy(), solver_backend=tsp_solver
     )
-    lm.main_info(f"Solving TSP for color graph...")
+    lm.main_info(f"Solving TSP for color graph...", indent_level=2)
     color_tsp_path, color_tsp_score = tsp(
         distance_matrix=-color_distance.to_numpy(), solver_backend=tsp_solver
     )
@@ -60,7 +58,7 @@ def map_graph_tsp(
         lm.main_info(f"color_tsp_score: {color_tsp_score}")
 
     # Reorder cluster distance matrix to match with cluster tsp loop
-    cluster_distance_tsp = np.transpose(cluster_distance[cluster_tsp_path])[
+    cluster_distance_tsp = np.transpose(cluster_distance.to_numpy()[cluster_tsp_path])[
         cluster_tsp_path
     ]
 
@@ -72,9 +70,9 @@ def map_graph_tsp(
     rotate_offset = 0
     for i in range(len(color_distance)):
         color_rotate_index = color_tsp_path_rotator[i : i + len(color_distance)]
-        color_distance_tsp_rotate = np.transpose(color_distance[color_rotate_index])[
-            color_rotate_index
-        ]
+        color_distance_tsp_rotate = np.transpose(
+            color_distance.to_numpy()[color_rotate_index]
+        )[color_rotate_index]
         rotate_distance_tmp = matrix_distance(
             matrix_x=cluster_distance_tsp,
             matrix_y=color_distance_tsp_rotate,
@@ -125,14 +123,18 @@ def embed_graph(
     """
 
     # Embed clusters into 3-dimensional space
-    lm.main_info(f"Calculating cluster embedding...")
+    lm.main_info(f"Calculating cluster embedding...", indent_level=3)
     if transformation == "mds":
+        from sklearn.manifold import MDS
+
         model = MDS(
             n_components=3,
             dissimilarity="precomputed",
             random_state=123,
         )
     elif transformation == "umap":
+        from umap import UMAP
+
         model = UMAP(
             n_components=3,
             metric="precomputed",
@@ -141,7 +143,7 @@ def embed_graph(
     embedding = model.fit_transform(cluster_distance)
 
     # Rescale embedding to CIE Lab colorspace
-    lm.main_info(f"Rescaling embedding to CIE Lab colorspace...")
+    lm.main_info(f"Rescaling embedding to CIE Lab colorspace...", indent_level=3)
     embedding -= np.quantile(embedding, trim_fraction, axis=0)
     embedding[embedding < 0] = 0
     embedding /= np.quantile(embedding, 1 - trim_fraction)
@@ -154,10 +156,10 @@ def embed_graph(
 
     embedding[:, 0] *= l_range[1] - l_range[0]
     embedding[:, 0] += l_range[0]
-    embedding[:, 1:2] -= 0.5
-    embedding[:, 1:2] *= 200
+    embedding[:, 1:3] -= 0.5
+    embedding[:, 1:3] *= 200
 
-    lm.main_info(f"Generating cluster color mapping...")
+    lm.main_info(f"Optimizing cluster color mapping...")
     color_mapping = dict(
         zip(
             cluster_distance.index,

@@ -36,7 +36,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     distance_matrix = np.zeros([len(unique_labels), len(unique_labels)], dtype=np.int32)
 
     # Calculate cell neighborhood
-    lm.main_info(f"Calculating cell neighborhood...")
+    lm.main_info(f"Calculating cell neighborhood...", indent_level=2)
     tree = KDTree(cell_coordinates, leaf_size=2)
 
     for i in range(len(unique_labels)):
@@ -71,7 +71,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
                 distance_vector[j] = neighbor_count
         distance_matrix[i] = distance_vector
 
-    lm.main_info(f"Constructing cluster distance graph...")
+    lm.main_info(f"Constructing cluster distance graph...", indent_level=2)
     distance_matrix = pd.DataFrame(distance_matrix)
     distance_matrix.index = unique_labels
     distance_matrix.columns = unique_labels
@@ -94,12 +94,12 @@ def perceptual_distance(colors: List[str]) -> pd.DataFrame:
     distance_matrix = np.zeros([len(colors), len(colors)], dtype=np.float32)
 
     # Calculate difference between colors
-    lm.main_info(f"Calculating color perceptual distance...")
+    lm.main_info(f"Calculating color perceptual distance...", indent_level=2)
     for i in range(len(colors)):
         for j in range(len(colors)):
             distance_matrix[i][j] = color_difference_rgb(colors[i], colors[j])
 
-    lm.main_info(f"Constructing color distance graph...")
+    lm.main_info(f"Constructing color distance graph...", indent_level=2)
     distance_matrix = pd.DataFrame(distance_matrix)
     distance_matrix.index = colors
     distance_matrix.columns = colors
