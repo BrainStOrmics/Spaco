@@ -186,7 +186,39 @@ def cluster_mapping_iou(
     cluster_label,
     cluster_label_reference,
 ) -> List:
+    def iou(i, j):
+        I = np.sum((cluster_label == i) & (cluster_label_reference == j))
+        U = np.sum((cluster_label == i) | (cluster_label_reference == j))
+        return I / U
 
-    assert False, "under development."  # TODO: implement here
-
-    return None
+    UF_iou = np.frompyfunc(iou, 2, 1)
+    # 两个列表的长度不可以不一样
+    assert len(cluster_label) == len(cluster_label_reference)
+    # list -> np.ndarray
+    cluster_label: np.ndarray = np.array(cluster_label)
+    cluster_label_reference: np.ndarray = np.array(cluster_label_reference)
+    # unique的label，label需要比ref_labels少
+    labels = np.unique(cluster_label)
+    ref_labels = np.unique(cluster_label_reference)
+    assert len(labels) <= len(ref_labels)
+    # grid label
+    C_lab = labels.reshape(1, len(labels)).repeat(len(ref_labels), axis=0)
+    I_ref = ref_labels.reshape(len(ref_labels), 1).repeat(len(labels), axis=1)
+    # 计算iou矩阵，以ref为行，label为列
+    iou_array = UF_iou(C_lab, I_ref).astype(np.float64)
+    # 对应关系，字典
+    relationship = {}
+    # 策略：总是以当前矩阵中iou最大的位置建立关系，并将这一行列设置为0后，再循环下一次
+    while np.sum(iou_array) != 0:
+        # 获取当前矩阵中最大值
+        idx_ref, idx_lab = np.unravel_index(iou_array.argmax(), iou_array.shape)
+        # 确定一个对应关系
+        relationship[labels[idx_lab]] = ref_labels[idx_ref]
+        # 更新iou矩阵，将已经确定的行、列的，iou置0
+        iou_array[idx_ref, :] = 0
+        iou_array[:, idx_lab] = 0
+    # 将cluster_labels 按照对应关系映射为mapped_cluster_label
+    mapped_cluster_label: np.ndarray = np.frompyfunc(lambda x: relationship[x], 1, 1)(
+        cluster_label
+    )
+    return mapped_cluster_label.tolist()
