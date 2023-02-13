@@ -12,8 +12,6 @@ except ImportError:
 from .logging import logger_manager as lm
 from .utils import lab_to_hex, matrix_distance, tsp
 
-# from .tsp import tsp #stochastic tsp solver
-
 
 def map_graph_tsp(
     cluster_distance: pd.DataFrame,
@@ -183,42 +181,65 @@ def cluster_mapping_exp(
 
 
 def cluster_mapping_iou(
-    cluster_label,
-    cluster_label_reference,
+    cluster_label_mapping: List,
+    cluster_label_reference: List,
 ) -> List:
+    """
+    Function to map clusters between different clustering results based
+    on cluster overlap (IOU).
+
+    Args:
+        cluster_label_mapping (List): cluster result for cells to be mapped.
+        cluster_label_reference (List): cluster result for cells to be
+            mapped to.
+
+    Returns:
+        List: mapping result of `cluster_label_mapping`.
+    """
+
     def iou(i, j):
-        I = np.sum((cluster_label == i) & (cluster_label_reference == j))
-        U = np.sum((cluster_label == i) | (cluster_label_reference == j))
+        I = np.sum((cluster_label_mapping == i) & (cluster_label_reference == j))
+        U = np.sum((cluster_label_mapping == i) | (cluster_label_reference == j))
         return I / U
 
-    UF_iou = np.frompyfunc(iou, 2, 1)
-    # 两个列表的长度不可以不一样
-    assert len(cluster_label) == len(cluster_label_reference)
-    # list -> np.ndarray
-    cluster_label: np.ndarray = np.array(cluster_label)
-    cluster_label_reference: np.ndarray = np.array(cluster_label_reference)
-    # unique的label，label需要比ref_labels少
-    labels = np.unique(cluster_label)
-    ref_labels = np.unique(cluster_label_reference)
-    assert len(labels) <= len(ref_labels)
-    # grid label
-    C_lab = labels.reshape(1, len(labels)).repeat(len(ref_labels), axis=0)
-    I_ref = ref_labels.reshape(len(ref_labels), 1).repeat(len(labels), axis=1)
-    # 计算iou矩阵，以ref为行，label为列
-    iou_array = UF_iou(C_lab, I_ref).astype(np.float64)
-    # 对应关系，字典
+    # Cells should be identical between different runs.
+    assert len(cluster_label_mapping) == len(cluster_label_reference)
+
+    ufunc_iou = np.frompyfunc(iou, 2, 1)
+    cluster_label_mapping = np.array(cluster_label_mapping)
+    cluster_label_reference = np.array(cluster_label_reference)
+
+    # Reference label types should be more than mapping label types
+    mapping_label_list = np.unique(cluster_label_mapping)
+    reference_label_list = np.unique(cluster_label_reference)
+    assert len(mapping_label_list) <= len(reference_label_list)
+
+    # Grid label lists for vectorized calculation
+    mapping_vector_column = mapping_label_list.reshape(
+        1, len(mapping_label_list)
+    ).repeat(len(reference_label_list), axis=0)
+    reference_vector_index = reference_label_list.reshape(
+        len(reference_label_list), 1
+    ).repeat(len(mapping_label_list), axis=1)
+    # Calculate IOU matrix
+    iou_matrix = ufunc_iou(mapping_vector_column, reference_vector_index).astype(
+        np.float64
+    )
+
+    # Greedy mapping to the largest IOU of each label
     relationship = {}
-    # 策略：总是以当前矩阵中iou最大的位置建立关系，并将这一行列设置为0后，再循环下一次
-    while np.sum(iou_array) != 0:
-        # 获取当前矩阵中最大值
-        idx_ref, idx_lab = np.unravel_index(iou_array.argmax(), iou_array.shape)
-        # 确定一个对应关系
-        relationship[labels[idx_lab]] = ref_labels[idx_ref]
-        # 更新iou矩阵，将已经确定的行、列的，iou置0
-        iou_array[idx_ref, :] = 0
-        iou_array[:, idx_lab] = 0
-    # 将cluster_labels 按照对应关系映射为mapped_cluster_label
-    mapped_cluster_label: np.ndarray = np.frompyfunc(lambda x: relationship[x], 1, 1)(
-        cluster_label
+    while np.sum(iou_matrix) != 0:
+        reference_index, mapping_index = np.unravel_index(
+            iou_matrix.argmax(), iou_matrix.shape
+        )
+        relationship[mapping_label_list[mapping_index]] = reference_label_list[
+            reference_index
+        ]
+        # Clear mapped labels to avoid duplicated mapping
+        iou_matrix[reference_index, :] = 0
+        iou_matrix[:, mapping_index] = 0
+
+    mapped_cluster_label = np.frompyfunc(lambda x: relationship[x], 1, 1)(
+        cluster_label_mapping
     )
     return mapped_cluster_label.tolist()
