@@ -212,7 +212,7 @@ def colorize_mutiple_slices(
         base_adata_index = np.argmax(cluster_counts)
 
         adatas[base_adata_index].obs[cluster_key + "_spaco2"] = (
-            adatas[base_adata_index].obs[cluster_key].copy()
+            adatas[base_adata_index].obs[cluster_key].astype("category")
         )
         for i in range(len(adatas)):
             if i == base_adata_index:
@@ -224,11 +224,15 @@ def colorize_mutiple_slices(
                 mapping_gene_set=mapping_gene_set,
                 cluster_key=cluster_key,
             )
+            adatas[i].obs[cluster_key + "_spaco2"] = (
+                adatas[i].obs[cluster_key + "_spaco2"].astype("category")
+            )
         # After cluster alignment, just do "annotation" mode colorization
-        lm.main_info(
-            f"Mapped cluster name added to `adata.obs['{cluster_key}_spaco2']`. Result color mapping will base on new cluster name."
-        )
         lm.main_info_insert_adata_obs(f"'{cluster_key}_spaco2'", indent_level=2)
+        lm.main_info(
+            f"Mapped cluster name added to `adata.obs['{cluster_key}_spaco2']`. Result color mapping will base on new cluster name.",
+            indent_level=2,
+        )
         cluster_key = cluster_key + "_spaco2"
 
     if manual_mapping is not None:
@@ -250,9 +254,10 @@ def colorize_mutiple_slices(
                 f"Note that manual colors should be different with any color in `palette` or `image_palette`."
             )
             # Exclude cells with manually given color
-            excluded_clusters = list(manual_mapping.keys())
     else:
         manual_mapping = {}
+
+    excluded_clusters = list(manual_mapping.keys())
 
     # Calculate cluster distance matrix for each slice and merge
     cluster_distance_matrix_merged = pd.DataFrame()
@@ -366,19 +371,30 @@ def colorize_mutiple_runs(
 
     adata.obs[cluster_keys[base_cluster_key_index] + "_spaco2"] = adata.obs[
         cluster_keys[base_cluster_key_index]
-    ].copy()
+    ].astype("category")
+    lm.main_info_insert_adata_obs(
+        f"'{cluster_keys[base_cluster_key_index]}_spaco2'", indent_level=3
+    )
     for i in range(len(cluster_keys)):
         if i == base_cluster_key_index:
             continue
-        lm.main_info(f"Mapping run {i} to run {base_cluster_key_index}...")
-        adata.obs[cluster_keys[i] + "_spaco2"] = cluster_mapping_iou(
-            cluster_label=adata.obs[cluster_keys[i]],
-            cluster_label_reference=adata.obs[cluster_keys[base_cluster_key_index]],
+        lm.main_info(
+            f"Mapping run {i} to run {base_cluster_key_index}...", indent_level=2
         )
-        lm.main_info_insert_adata_obs(f"'{cluster_keys[i]}_spaco2'", indent_level=2)
+        adata.obs[cluster_keys[i] + "_spaco2"] = cluster_mapping_iou(
+            cluster_label=adata.obs[cluster_keys[i]].to_list(),
+            cluster_label_reference=adata.obs[
+                cluster_keys[base_cluster_key_index]
+            ].to_list(),
+        )
+        adata.obs[cluster_keys[i] + "_spaco2"] = adata.obs[
+            cluster_keys[i] + "_spaco2"
+        ].astype("category")
+        lm.main_info_insert_adata_obs(f"'{cluster_keys[i]}_spaco2'", indent_level=3)
 
     lm.main_info(
-        f"Mapped cluster name added to `adata.obs['***_spaco2']`. Result color mapping will base on new cluster name."
+        f"Mapped cluster name added to `adata.obs['***_spaco2']`. Result color mapping will base on new cluster name.",
+        indent_level=2,
     )
     cluster_keys = [cluster_key + "_spaco2" for cluster_key in cluster_keys]
 
