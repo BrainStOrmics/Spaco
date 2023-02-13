@@ -382,7 +382,7 @@ def colorize_mutiple_runs(
             f"Mapping run {i} to run {base_cluster_key_index}...", indent_level=2
         )
         adata.obs[cluster_keys[i] + "_spaco2"] = cluster_mapping_iou(
-            cluster_label=adata.obs[cluster_keys[i]].to_list(),
+            cluster_label_mapping=adata.obs[cluster_keys[i]].to_list(),
             cluster_label_reference=adata.obs[
                 cluster_keys[base_cluster_key_index]
             ].to_list(),
