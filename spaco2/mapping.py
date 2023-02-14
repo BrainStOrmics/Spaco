@@ -228,6 +228,8 @@ def cluster_mapping_iou(
 
     # Greedy mapping to the largest IOU of each label
     relationship = {}
+    index_not_mapped = np.ones(len(mapping_label_list)).astype(bool)
+    iou_matrix_backup = iou_matrix.copy()
     while np.sum(iou_matrix) != 0:
         reference_index, mapping_index = np.unravel_index(
             iou_matrix.argmax(), iou_matrix.shape
@@ -238,7 +240,20 @@ def cluster_mapping_iou(
         # Clear mapped labels to avoid duplicated mapping
         iou_matrix[reference_index, :] = 0
         iou_matrix[:, mapping_index] = 0
+        index_not_mapped[mapping_index] = False
 
+    # Check if every label is mapped to a reference
+    for mapping_index, is_force_map in enumerate(index_not_mapped):
+        if is_force_map:
+            reference_index = iou_matrix_backup[:, mapping_index].argmax()
+            relationship[mapping_label_list[mapping_index]] = reference_label_list[
+                reference_index
+            ]
+        lm.main_warning(
+            f"Mapping between cluster {mapping_label_list[mapping_index]} and cluster "
+            + f"{reference_label_list[reference_index]} is not bijective.",
+            indent_level=3,
+        )
     mapped_cluster_label = np.frompyfunc(lambda x: relationship[x], 1, 1)(
         cluster_label_mapping
     )
