@@ -206,8 +206,8 @@ def cluster_mapping_iou(
     assert len(cluster_label_mapping) == len(cluster_label_reference)
 
     ufunc_iou = np.frompyfunc(iou, 2, 1)
-    cluster_label_mapping = np.array(cluster_label_mapping)
-    cluster_label_reference = np.array(cluster_label_reference)
+    cluster_label_mapping = np.array(cluster_label_mapping).astype(str)
+    cluster_label_reference = np.array(cluster_label_reference).astype(str)
 
     # Reference label types should be more than mapping label types
     mapping_label_list = np.unique(cluster_label_mapping)
@@ -243,17 +243,21 @@ def cluster_mapping_iou(
         index_not_mapped[mapping_index] = False
 
     # Check if every label is mapped to a reference
+    duplicate_map_label = np.ones(len(reference_label_list))
     for mapping_index, is_force_map in enumerate(index_not_mapped):
         if is_force_map:
             reference_index = iou_matrix_backup[:, mapping_index].argmax()
-            relationship[mapping_label_list[mapping_index]] = reference_label_list[
-                reference_index
-            ]
-        lm.main_warning(
-            f"Mapping between cluster {mapping_label_list[mapping_index]} and cluster "
-            + f"{reference_label_list[reference_index]} is not bijective.",
-            indent_level=3,
-        )
+            relationship[mapping_label_list[mapping_index]] = (
+                reference_label_list[reference_index]
+                + ".%d" % duplicate_map_label[reference_index]
+            )
+            duplicate_map_label[reference_index] += 1
+            # Log: warning
+            lm.main_warning(
+                f"Mapping between cluster {mapping_label_list[mapping_index]} and cluster "
+                + f"{reference_label_list[reference_index]} is not bijective.",
+                indent_level=3,
+            )
     mapped_cluster_label = np.frompyfunc(lambda x: relationship[x], 1, 1)(
         cluster_label_mapping
     )
