@@ -68,7 +68,7 @@ def colorize(
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
+            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.
@@ -188,7 +188,7 @@ def colorize_mutiple_slices(
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
+            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.
@@ -349,7 +349,7 @@ def colorize_mutiple_runs(
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
+            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.

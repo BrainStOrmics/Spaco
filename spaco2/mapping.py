@@ -17,6 +17,8 @@ def map_graph_tsp(
     cluster_distance: pd.DataFrame,
     color_distance: pd.DataFrame,
     tsp_solver: Literal["exact", "heuristic"] = "heuristic",
+    reproducible: bool = True,
+    random_seed: int = 123,
     distance_metric: Literal["euclidean", "manhattan", "log"] = "manhattan",
     verbose: bool = False,
 ) -> Dict[Any, str]:
@@ -30,6 +32,10 @@ def map_graph_tsp(
         color_distance (pd.DataFrame): a `pandas.DataFrame` with unique colors (in hex) as `index` and `columns`,
             which contains a distance adjacent matrix for colors, representing the perceptual difference between colors.
         tsp_solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver backend. Defaults to "heuristic".
+        reproducible (bool): whether to guarantee reproducibility when using heuristic solver, if `True`,
+            heuristic result will be reproducible under same `random_seed`. If `False`, user can roll different
+            results and select their own optimal.
+        random_seed (int): random seed for heuristic solver.
         distance_metric (Literal[&quot;euclidean&quot;, &quot;manhattan&quot;, &quot;log&quot;], optional): metric used for matrix mapping. Defaults to "manhattan".
         verbose (bool, optional): output info.
 
@@ -44,11 +50,17 @@ def map_graph_tsp(
     # Calculate tsp loop for clusters and colors
     lm.main_info(f"Solving TSP for cluster graph...", indent_level=2)
     cluster_tsp_path, cluster_tsp_score = tsp(
-        distance_matrix=-cluster_distance.to_numpy(), solver_backend=tsp_solver
+        distance_matrix=-cluster_distance.to_numpy(),
+        solver_backend=tsp_solver,
+        reproducible=reproducible,
+        random_seed=random_seed,
     )
     lm.main_info(f"Solving TSP for color graph...", indent_level=2)
     color_tsp_path, color_tsp_score = tsp(
-        distance_matrix=-color_distance.to_numpy(), solver_backend=tsp_solver
+        distance_matrix=-color_distance.to_numpy(),
+        solver_backend=tsp_solver,
+        reproducible=reproducible,
+        random_seed=random_seed,
     )
 
     if verbose:

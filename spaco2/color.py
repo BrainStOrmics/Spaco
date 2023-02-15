@@ -49,7 +49,7 @@ def assign_color(
             typical RGB image of shape (x, y, 3). Ignored if `palette` is given. See `Mode 2`
             above. Defaults to None.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for reproducible result,
+            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
             Defaults to {}.

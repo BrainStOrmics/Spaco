@@ -1,3 +1,4 @@
+import random
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -135,6 +136,8 @@ def color_difference_rgb(color_x: str, color_y: str) -> float:
 def tsp(
     distance_matrix: np.ndarray,
     solver_backend: Literal["exact", "heuristic"] = "heuristic",
+    reproducible: bool = True,
+    random_seed: int = 123,
 ) -> Tuple[List[int], float]:
     """
     TSP solver. <https://github.com/fillipe-gsm/python-tsp>
@@ -142,8 +145,12 @@ def tsp(
     Args:
         distance_matrix (np.ndarray): distance adjacent matrix.
         solver_backend (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): exact solver guarantees
-            reproducibility but takes more time and memory, heuristic solver is fast but may fall into local
-            optimal and does not guarantee reproducibility. Defaults to "heuristic".
+            best mapping but takes more time and memory, heuristic solver is fast but may fall into local
+            optimal. Defaults to "heuristic".
+        reproducible (bool): whether to guarantee reproducibility when using heuristic solver, if `True`,
+            heuristic result will be reproducible under same `random_seed`. If `False`, user can roll different
+            results and select their own optimal.
+        random_seed (int): random seed for heuristic solver.
 
     Returns:
         Tuple[List[int], float]: tsp_path is a list of vertices, tsp_score is the length of path.
@@ -152,6 +159,8 @@ def tsp(
     if solver_backend == "exact":
         tsp_path, tsp_score = solve_tsp_dynamic_programming(distance_matrix)
     elif solver_backend == "heuristic":
+        if reproducible:
+            random.seed(random_seed)
         tsp_path, tsp_score = solve_tsp_local_search(distance_matrix)
 
     return tsp_path, tsp_score
