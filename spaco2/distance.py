@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KDTree
+from scipy.spatial import distance
 
 from .logging import logger_manager as lm
 from .utils import color_difference_rgb
@@ -11,6 +12,7 @@ from .utils import color_difference_rgb
 def spatial_distance(  # TODO: optimize neighbor calculation
     cell_coordinates,
     cell_labels,
+    cell_weight: float = 0.5, 
     radius: float = 90,  # TODO: comfirm default value
     n_neighbors: int = 4,
     n_cells: int = 3,  # TODO: why n_cells
@@ -23,6 +25,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     Args:
         cell_coordinates: a list like object containing spatial coordinates for each cell.
         cell_labels: a list like object containing cluster labels for each cell.
+        cell_weigth: cell weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         n_cells (int, optional): only calculate neighborhood with more than `n_cells`. Defaults to 3.
@@ -35,11 +38,17 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     unique_labels = np.unique(cell_labels)
     distance_matrix = np.zeros([len(unique_labels), len(unique_labels)], dtype=np.int32)
 
+    labels_coordinates = np.zeros([len(unique_labels), 2], dtype=np.int32)
+    labels_matrix = np.zeros([len(unique_labels), len(unique_labels)], dtype=np.int32)
+
     # Calculate cell neighborhood
     lm.main_info(f"Calculating cell neighborhood...", indent_level=2)
     tree = KDTree(cell_coordinates, leaf_size=2)
 
     for i in range(len(unique_labels)):
+        labels_coordinates[i] = np.median(
+            np.array(cell_coordinates[cell_labels == unique_labels[i]]), axis=0
+        )
         neighbor_index_knn = tree.query(
             cell_coordinates[cell_labels == unique_labels[i]], k=n_neighbors
         )[1]
@@ -54,7 +63,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
             if cell_labels[r][cell_labels == unique_labels[i]].size >= n_cells:
                 neighbor_index_merged.append(r)
         neighbor_labels = cell_labels[
-            np.unique([j for i in neighbor_index_knn for j in i])
+            np.unique([j for i in neighbor_index_merged for j in i])
         ]
         distance_vector = np.zeros_like(unique_labels)
         for j in range(len(unique_labels)):
@@ -70,6 +79,30 @@ def spatial_distance(  # TODO: optimize neighbor calculation
                     neighbor_count = distance_matrix[j][i]
                 distance_vector[j] = neighbor_count
         distance_matrix[i] = distance_vector
+        
+    # Caculate labels distance
+    for i in range(len(labels_coordinates)):
+        for j in range(len(labels_coordinates)):
+            if i > j:
+                labels_matrix[i][j] = labels_matrix[j][i]
+            elif i == j:
+                labels_matrix[i][j] = 0
+            else:
+                labels_matrix[i][j] = distance.euclidean(
+                labels_coordinates[i], labels_coordinates[j]
+                )
+
+    '''
+    # Transform labels_matrix to distance_matrix by MinMaxScaler
+    mm_transformer = MinMaxScaler(feature_range=(
+    np.min(distance_matrix), np.max(distance_matrix)
+    ))
+    labels_matrix = mm_transformer.fit_transform(labels_matrix)
+    '''
+    # Transform labels_matrix to distance_matrix by Mean
+    labels_matrix = -labels_matrix / np.mean(labels_matrix) * np.mean(distance_matrix)
+
+    distance_matrix = cell_weight * distance_matrix + (1 - cell_weight) * labels_matrix
 
     lm.main_info(f"Constructing cluster distance graph...", indent_level=2)
     distance_matrix = pd.DataFrame(distance_matrix)
