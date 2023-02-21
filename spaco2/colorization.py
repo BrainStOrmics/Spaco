@@ -21,7 +21,7 @@ def colorize(
     palette: List[str] = None,
     image_palette: np.ndarray = None,
     manual_mapping: Dict[Any, str] = None,
-    cell_weight: float = 0.5, 
+    neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
@@ -66,7 +66,7 @@ def colorize(
         manual_mapping (Dict[Any, str], optional): a `dict` for manual color mapping. Keys are
             cluster names. Values are manually assigned colors (in hex). Only works if `palette`
             or `image_palette` is provided (See `Mode 1` and `Mode 2`). Defaults to None.
-        cell_weigth: cell weight to calculate cell neighborhood. Defaults to 0.5.
+        neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
@@ -116,7 +116,7 @@ def colorize(
     cluster_distance_matrix = spatial_distance(
         cell_coordinates=cell_coordinates,
         cell_labels=cell_labels,
-        cell_weight=cell_weight,
+        neighbor_weight=neighbor_weight,
         radius=radius,
         n_neighbors=n_neighbors,
         **neighbor_kwargs,
@@ -148,7 +148,7 @@ def colorize_mutiple_slices(
     palette: Optional[List[str]] = None,
     image_palette=None,
     manual_mapping: Optional[dict] = None,
-    cell_weight: float = 0.5, 
+    neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
@@ -189,7 +189,7 @@ def colorize_mutiple_slices(
         manual_mapping (Dict[Any, str], optional): a `dict` for manual color mapping. Keys are
             cluster names. Values are manually assigned colors (in hex). Only works if `palette`
             or `image_palette` is provided (See `Mode 1` and `Mode 2`). Defaults to None.
-        cell_weigth: cell weight to calculate cell neighborhood. Defaults to 0.5.
+        neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
@@ -275,7 +275,7 @@ def colorize_mutiple_slices(
             cell_labels=adatas[i].obs[cluster_key][
                 ~adatas[i].obs[cluster_key].isin(excluded_clusters)
             ],
-            cell_weight=cell_weight,
+            neighbor_weight=neighbor_weight,
             radius=radius,
             n_neighbors=n_neighbors,
             **neighbor_kwargs,
@@ -326,7 +326,7 @@ def colorize_mutiple_runs(
     spatial_key: str = "spatial",
     palette: Optional[List[str]] = None,
     image_palette=None,
-    cell_weight: float = 0.5, 
+    neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 4,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
@@ -353,7 +353,7 @@ def colorize_mutiple_runs(
         image_palette (np.ndarray, optional): an image in numpy array format. Should be a
             typical RGB image of shape (x, y, 3). Ignored if `palette` is given. See `Mode 2`
             above. Defaults to None.
-        cell_weigth: cell weight to calculate cell neighborhood. Defaults to 0.5.
+        neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
@@ -413,7 +413,7 @@ def colorize_mutiple_runs(
         cluster_distance_matrix_tmp = spatial_distance(
             cell_coordinates=adata.obsm[spatial_key],
             cell_labels=adata.obs[cluster_keys[i]],
-            cell_weight=cell_weight,
+            neighbor_weight=neighbor_weight,
             radius=radius,
             n_neighbors=n_neighbors,
             **neighbor_kwargs,
