@@ -56,12 +56,27 @@ def spatial_distance(  # TODO: optimize neighbor calculation
             cell_coordinates[cell_labels == unique_labels[i]], r=radius
         )
         neighbor_index_merged = []
+        '''
+        # Union between neighbor_index_knn and neighbor_index_radius
         for r in neighbor_index_knn:
             if cell_labels[r][cell_labels == unique_labels[i]].size >= n_cells:
                 neighbor_index_merged.append(r)
         for r in neighbor_index_radius:
             if cell_labels[r][cell_labels == unique_labels[i]].size >= n_cells:
                 neighbor_index_merged.append(r)
+        '''
+        # Intersection between neighbor_index_knn and neighbor_index_radius
+        for m in range(len(neighbor_index_knn)):
+            if (cell_labels[neighbor_index_knn[m]][cell_labels == unique_labels[i]].size
+                >= n_cells and 
+                cell_labels[neighbor_index_radius[m]][cell_labels == unique_labels[i]].size
+                >= n_cells
+                ) :
+                    neighbor_index_merged.append(
+                        np.intersect1d(neighbor_index_knn[m], neighbor_index_radius[m], 
+                        assume_unique=True
+                    ))
+
         neighbor_labels = cell_labels[
             np.unique([j for i in neighbor_index_merged for j in i])
         ]
