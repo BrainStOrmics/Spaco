@@ -2,17 +2,17 @@
 
 Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. Spaco (**spa**tial **co**lorization) provides a spatially constrained approach that generates discriminate color assignments for visualizing single-cell spatial data in various scenarios.
 
-[Quick Example](https://github.com/Bai-Lab/Spaco2/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/Bai-Lab/Spaco2)
+[Quick Example](https://github.com/Bai-Lab/Spaco/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/Bai-Lab/Spaco)
 
 # Installation
 
 ```
-pip install git+https://github.com/Bai-Lab/Spaco2.git
+pip install git+https://github.com/Bai-Lab/Spaco.git
 ```
 
 # Usage (under development)
 
-Spaco tutorials is still under development, see our [Quick Example](https://github.com/Bai-Lab/Spaco2/blob/main/notebooks/demo.ipynb).
+Spaco tutorials is still under development, see our [Quick Example](https://github.com/Bai-Lab/Spaco/blob/main/notebooks/demo.ipynb).
 
 # Development Process
 ## Code quality
