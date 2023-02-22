@@ -23,7 +23,7 @@ def colorize(
     manual_mapping: Dict[Any, str] = None,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
-    n_neighbors: int = 4,  # TODO: confirm default value
+    n_neighbors: int = 16,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
@@ -68,7 +68,7 @@ def colorize(
             or `image_palette` is provided (See `Mode 1` and `Mode 2`). Defaults to None.
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
-        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
+        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
@@ -150,7 +150,7 @@ def colorize_mutiple_slices(
     manual_mapping: Optional[dict] = None,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
-    n_neighbors: int = 4,  # TODO: confirm default value
+    n_neighbors: int = 16,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
@@ -191,7 +191,7 @@ def colorize_mutiple_slices(
             or `image_palette` is provided (See `Mode 1` and `Mode 2`). Defaults to None.
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
-        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
+        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
@@ -206,11 +206,11 @@ def colorize_mutiple_slices(
         Dict[Any, str]: optimized color mapping for clusters, keys are cluster names, values are hex colors.
     """
 
-    assert (
-        len(adatas) == 2
-    ), "Currently spaco2 only support expression based mapping between 2 slices."
-
     if slice_mapping == "expression":
+        assert (
+            len(adatas) == 2
+        ), "Currently spaco2 only support expression based mapping between 2 slices."
+
         # Map clusters between slices using expression similarity
         lm.main_info(f"Mapping clusters between slices using expression similarity...")
         cluster_counts = [len(np.unique(adata.obs[cluster_key])) for adata in adatas]
@@ -328,7 +328,7 @@ def colorize_mutiple_runs(
     image_palette=None,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
-    n_neighbors: int = 4,  # TODO: confirm default value
+    n_neighbors: int = 16,  # TODO: confirm default value
     solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
@@ -355,7 +355,7 @@ def colorize_mutiple_runs(
             above. Defaults to None.
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
-        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
+        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
         solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
             backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
             or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".

@@ -14,7 +14,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     cell_labels,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: comfirm default value
-    n_neighbors: int = 4,
+    n_neighbors: int = 16,
     n_cells: int = 3,  # TODO: why n_cells
 ) -> pd.DataFrame:
     """
@@ -27,7 +27,7 @@ def spatial_distance(  # TODO: optimize neighbor calculation
         cell_labels: a list like object containing cluster labels for each cell.
         cell_weigth: cell weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
-        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 4.
+        n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
         n_cells (int, optional): only calculate neighborhood with more than `n_cells`. Defaults to 3.
 
     Returns:
