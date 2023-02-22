@@ -1,3 +1,26 @@
-# Spaco2: Spatially constrained colorization for visualizing spatial data at single-cell resolution
+# Spaco: a comprehensive tool for coloring spatial data at single-cell resolution
 
-Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. However, spatially distributed cells in actual tissues often come with complex interlacement and topological relation, making it hard for current visualization methods to bring out visual distinction between neighboring clusters. Here we describe Spaco2, a spatially constrained colorization approach that generates a discriminate color assignment for single-cell spatial data. Specifically, Spaco2 exploits the composition within niches of all spatially distributed cells to construct a weighted connection graph between clusters, and uses it to either optimize the mapping of user-defined color palette or automatically generate distinguishable colors, so that tightly connected clusters have high preceptual difference. Besides, we provide comparability between visualization of different runs or samples, which is of further interset for bioinformatic analysts. Results on various datasets shows that Spaco2 outperforms current tools by successfully facilitating biological discovery, while this reemphasizes the importance of colorization on spatially resovled data analysis. Our tool is freely available at Github (https://github.com/Bai-Lab/Spaco2) with implementation in both Python and R to incorporate into most analysis frameworks.
+Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. Spaco (**spa**tial **co**lorization) provides a spatially constrained approach that generates discriminate color assignments for visualizing single-cell spatial data in various scenarios.
+
+[Quick Example](https://github.com/Bai-Lab/Spaco2/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/Bai-Lab/Spaco2)
+
+# Installation
+
+```
+pip install git+https://github.com/Bai-Lab/Spaco2.git
+```
+
+# Usage (under development)
+
+Spaco tutorials is still under development, see our [Quick Example](https://github.com/Bai-Lab/Spaco2/blob/main/notebooks/demo.ipynb).
+
+# Development Process
+## Code quality
+- File and function docstrings should be written in [Google style](https://google.github.io/styleguide/pyguide.html)
+- We use `black` to automatically format code in a standardized format. To ensure that any code changes are up to standard, use `pre-commit` as such.
+```
+# Run the following two lines ONCE.
+pip install pre-commit
+pre-commit install
+```
+Then, all future commits will call `black` automatically to format the code. Any code that does not follow the standard will cause a check to fail.
