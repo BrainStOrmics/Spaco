@@ -1,26 +1,80 @@
-# Spaco: a comprehensive tool for coloring spatial data at single-cell resolution
+## Spaco: a comprehensive tool for coloring spatial data at single-cell resolution
+
+[![python~=3.8](https://img.shields.io/badge/python-3.8-brightgreen)](https://www.python.org/)
+[![License: GPL3.0](https://img.shields.io/badge/License-GPL3.0-yellow)](https://opensource.org/license/gpl-3-0/)
+
+[Quick Example](https://github.com/BrainStOrmics/Spaco/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/BrainStOrmics/Spaco)
 
 Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. Spaco (**spa**tial **co**lorization) provides a spatially constrained approach that generates discriminate color assignments for visualizing single-cell spatial data in various scenarios.
 
-[Quick Example](https://github.com/Bai-Lab/Spaco/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/Bai-Lab/Spaco)
+![image](https://github.com/BrainStOrmics/Spaco/assets/37856906/922ca83d-e787-4a25-abee-826be91081ab)
 
-# Installation
+## Features
+
+**Color assignment**
+
+By quantifying the complex topology between cell type clusters, We optimized color assignment of to achieve better visual recognizability.
+
+**Palette extraction**
+
+We provide a method for extracting color plates from images. While maintaining the theme color, the color differentiation is maximized.
+
+## Installation
 
 ```
-pip install git+https://github.com/Bai-Lab/Spaco.git
+pip install git+https://github.com/BrainStOrmics/Spaco.git
 ```
 
-# Usage (under development)
+## Enviroments
 
-Spaco tutorials is still under development, see our [Quick Example](https://github.com/Bai-Lab/Spaco/blob/main/notebooks/demo.ipynb).
+- python>=3.8.0
+- numpy>=1.18.0
+- pandas>=0.25.1
+- scipy>=1.10.0
+- anndata>=0.8.0
+- scikit-learn>=0.19.0
+- scikit-image>=0.19.0
+- colormath>=3.0.0
+- pyciede2000==0.0.21
+- umap-learn>=0.5.0
+- logging-release>=0.0.4
+- typing_extensions>=4.0.0
 
-# Development Process
-## Code quality
-- File and function docstrings should be written in [Google style](https://google.github.io/styleguide/pyguide.html)
-- We use `black` to automatically format code in a standardized format. To ensure that any code changes are up to standard, use `pre-commit` as such.
+## Usage
+
+### Quick start
+
+```python
+import spaco
+import scanpy as sc # For visualization
+import squidpy as sq # For loading example dataset
+
+# loading data
+adata_cell = sq.datasets.seqfish()
+palette_default = adata_cell.uns['celltype_mapped_refined_colors'].copy()
+
+# color assignment with default palette
+color_mapping = spaco.colorize(
+    cell_coordinates=adata_cell.obsm['spatial'],
+    cell_labels=adata_cell.obs['celltype_mapped_refined'],
+    palette=palette_default,
+    radius=0.05,
+    n_neighbors=30,
+)
+
+# Order colors by categories in adata
+color_mapping = {k: color_mapping[k] for k in adata_cell.obs['celltype_mapped_refined'].cat.categories}
+palette_spaco = list(color_mapping.values())
+
+# Spaco colorization
+sc.pl.spatial(adata_cell, color="celltype_mapped_refined", spot_size=0.035, palette=palette_spaco)
 ```
-# Run the following two lines ONCE.
-pip install pre-commit
-pre-commit install
-```
-Then, all future commits will call `black` automatically to format the code. Any code that does not follow the standard will cause a check to fail.
+
+### Tutorials and demo-cases
+- A brief [**demo**](https://github.com/BrainStOrmics/Spaco/blob/main/notebooks/demo.ipynb) is included in Spaco package.
+
+## Reproducibility
+Scripts to reproduce benchmarking and analytic results in Spaco paper are in repository [Spaco_scripts](https://github.com/BrainStOrmics/Spaco_scripts)
+
+## Discussion 
+Users can use issue tracker to report software/code related [issues](https://github.com/BrainStOrmics/Spaco/issues). For discussion of novel usage cases and user tips, contribution on Spaco performance optimization, please contact the authors via [email](mailto:baiyinqi@genomics.cn). 
