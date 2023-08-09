@@ -24,7 +24,6 @@ def colorize(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -69,12 +68,9 @@ def colorize(
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
-        solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
-            or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.
-        mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
+        mapping_kwargs (dict, optional): arguments passed to `map_graph` function.
             Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
             Defaults to {}.
@@ -127,7 +123,6 @@ def colorize(
         cluster_distance_matrix=cluster_distance_matrix,
         palette=palette,
         image_palette=image_palette,
-        solver=solver,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )
@@ -151,7 +146,6 @@ def colorize_mutiple_slices(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -192,12 +186,9 @@ def colorize_mutiple_slices(
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
-        solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
-            or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.
-        mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
+        mapping_kwargs (dict, optional): arguments passed to `map_graph` function.
             Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
             Defaults to {}.
@@ -308,7 +299,6 @@ def colorize_mutiple_slices(
         cluster_distance_matrix=cluster_distance_matrix_merged,
         palette=palette,
         image_palette=image_palette,
-        solver=solver,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )
@@ -329,7 +319,6 @@ def colorize_mutiple_runs(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    solver: Literal["exact", "heuristic"] = "heuristic",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -356,12 +345,9 @@ def colorize_mutiple_runs(
         neighbor_weight: neighbor weight to calculate cell neighborhood. Defaults to 0.5.
         radius (float, optional): radius used to calculate cell neighborhood. Defaults to 90.
         n_neighbors (int, optional): k for KNN neighbor detection. Defaults to 16.
-        solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
-            or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
         neighbor_kwargs (dict, optional): arguments passed to `spatial_distance` function.
             Defaults to {}.
-        mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
+        mapping_kwargs (dict, optional): arguments passed to `map_graph` function.
             Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
             Defaults to {}.
@@ -446,7 +432,6 @@ def colorize_mutiple_runs(
         cluster_distance_matrix=cluster_distance_matrix_merged,
         palette=palette,
         image_palette=image_palette,
-        solver=solver,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )

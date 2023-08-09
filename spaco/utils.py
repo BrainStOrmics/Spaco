@@ -5,8 +5,6 @@ import numpy as np
 from colormath.color_conversions import Lab_to_XYZ, XYZ_to_Luv, convert_color
 from colormath.color_objects import LabColor, XYZColor, sRGBColor
 from pyciede2000 import ciede2000
-from python_tsp.exact import solve_tsp_dynamic_programming
-from python_tsp.heuristics import solve_tsp_local_search
 from scipy.spatial import ConvexHull
 from skimage import color
 
@@ -21,7 +19,7 @@ from .logging import logger_manager as lm
 def matrix_distance(
     matrix_x: np.ndarray,
     matrix_y: np.ndarray,
-    metric: Literal["euclidean", "manhattan", "log"] = "manhattan",
+    metric: Literal["euclidean", "manhattan", "log", "mul_1"] = "manhattan",
 ) -> float:
     """
     Calculate the distance between two matrices.
@@ -43,6 +41,8 @@ def matrix_distance(
         return np.sum(abs(matrix_x - matrix_y))
     elif metric.lower() == "log":
         return np.sum(matrix_x * np.log(matrix_y))
+    elif metric.lower() == "mul_1":
+        return 1000 / np.sum(matrix_x*matrix_y)
 
 
 def hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
@@ -131,39 +131,6 @@ def color_difference_rgb(color_x: str, color_y: str) -> float:
         + 4 * (rgb_x[1] - rgb_y[1]) ** 2
         + (2 + (255 - rgb_r) / 256) * (rgb_x[2] - rgb_y[2]) ** 2
     ) ** 0.5
-
-
-def tsp(
-    distance_matrix: np.ndarray,
-    solver_backend: Literal["exact", "heuristic"] = "heuristic",
-    reproducible: bool = True,
-    random_seed: int = 123,
-) -> Tuple[List[int], float]:
-    """
-    TSP solver. <https://github.com/fillipe-gsm/python-tsp>
-
-    Args:
-        distance_matrix (np.ndarray): distance adjacent matrix.
-        solver_backend (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): exact solver guarantees
-            best mapping but takes more time and memory, heuristic solver is fast but may fall into local
-            optimal. Defaults to "heuristic".
-        reproducible (bool): whether to guarantee reproducibility when using heuristic solver, if `True`,
-            heuristic result will be reproducible under same `random_seed`. If `False`, user can roll different
-            results and select their own optimal.
-        random_seed (int): random seed for heuristic solver.
-
-    Returns:
-        Tuple[List[int], float]: tsp_path is a list of vertices, tsp_score is the length of path.
-    """
-
-    if solver_backend == "exact":
-        tsp_path, tsp_score = solve_tsp_dynamic_programming(distance_matrix)
-    elif solver_backend == "heuristic":
-        if reproducible:
-            random.seed(random_seed)
-        tsp_path, tsp_score = solve_tsp_local_search(distance_matrix)
-
-    return tsp_path, tsp_score
 
 
 def _get_bin_color(bin_number: int) -> Tuple[float, float, float]:

@@ -71,48 +71,6 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     neighbor_index_filtered = np.array(neighbor_index_filtered, dtype=object)
     neighbor_distance_filtered = np.array(neighbor_distance_filtered, dtype=object)
 
-    # Calculate neighbor_matrix
-    lm.main_info(f"Calculating cluster neighbor size...", indent_level=2)
-    neighbor_matrix = np.zeros(
-        [len(unique_clusters), len(unique_clusters)], dtype=np.int32
-    )
-    for x in range(len(unique_clusters)):
-        neighbor_index_cluster_x = neighbor_index_filtered[
-            cell_labels == unique_clusters[x]
-        ]
-        for y in range(len(unique_clusters)):
-            if x == y:
-                neighbor_matrix[x][y] = 0
-            else:
-                neighbor_labels_cluster_x = cell_labels[
-                    np.unique([j for i in neighbor_index_cluster_x for j in i])
-                ]
-                neighbor_matrix[x][y] = np.sum(
-                    neighbor_labels_cluster_x == unique_clusters[y]
-                )
-    # Keep maximum between neighbor_matrix[x][y] and neighbor_matrix[y][x]
-    for x in range(len(unique_clusters)):
-        for y in range(len(unique_clusters)):
-            neighbor_matrix[x][y] = max(neighbor_matrix[x][y], neighbor_matrix[y][x])
-
-    # Calculate cluster centroids
-    lm.main_info(f"Calculating cluster centroid distance...", indent_level=2)
-    cluster_centroids = np.zeros([len(unique_clusters), 2], dtype=np.float64)
-    for i in range(len(unique_clusters)):
-        cluster_centroids[i] = np.median(
-            np.array(cell_coordinates[cell_labels == unique_clusters[i]]), axis=0
-        )
-    # Calculate cluster centroid distance
-    distance_matrix = np.zeros(
-        [len(unique_clusters), len(unique_clusters)], dtype=np.float64
-    )
-    for i in range(len(cluster_centroids)):
-        for j in range(i, len(cluster_centroids)):
-            distance_matrix[i][j] = distance.euclidean(
-                cluster_centroids[i], cluster_centroids[j]
-            )
-            distance_matrix[j][i] = distance_matrix[i][j]
-
     # Calculate score matrix
     lm.main_info(f"Calculating cluster interlacement score...", indent_level=2)
     score_matrix = np.zeros(
@@ -139,23 +97,8 @@ def spatial_distance(  # TODO: optimize neighbor calculation
             else:
                 score_matrix[x][y] = max(score_matrix[x][y], score_matrix[y][x])
 
-    # Merge matrix of different metrics
-    lm.main_info(f"Summarizing scores...", indent_level=2)
-    """
-    # Transform distance_matrix to neighbor_matrix by MinMaxScaler
-    mm_transformer = MinMaxScaler(feature_range=(
-    np.min(neighbor_matrix), np.max(neighbor_matrix)
-    ))
-    distance_matrix = mm_transformer.fit_transform(distance_matrix)
-    """
-    # Transform distance_matrix to neighbor_matrix by Mean
-    distance_matrix = (
-        -distance_matrix / np.mean(distance_matrix) * np.mean(neighbor_matrix)
-    )
-
-    # cluster_interlace_matrix = neighbor_weight * neighbor_matrix + (1 - neighbor_weight) * distance_matrix
     cluster_interlace_matrix = score_matrix
-
+    
     lm.main_info(f"Constructing cluster interlacement graph...", indent_level=2)
     cluster_interlace_matrix = pd.DataFrame(cluster_interlace_matrix)
     cluster_interlace_matrix.index = unique_clusters
@@ -184,6 +127,8 @@ def perceptual_distance(colors: List[str]) -> pd.DataFrame:
         for j in range(len(colors)):
             difference_matrix[i][j] = color_difference_rgb(colors[i], colors[j])
 
+    #difference_matrix = difference_matrix / np.sum(difference_matrix) * 1000
+    
     lm.main_info(f"Constructing color distance graph...", indent_level=2)
     difference_matrix = pd.DataFrame(difference_matrix)
     difference_matrix.index = colors

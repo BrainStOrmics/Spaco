@@ -5,7 +5,7 @@ import pandas as pd
 
 from .distance import perceptual_distance
 from .logging import logger_manager as lm
-from .mapping import embed_graph, map_graph_tsp
+from .mapping import embed_graph, map_graph
 from .utils import extract_palette
 
 
@@ -13,7 +13,6 @@ def assign_color(
     cluster_distance_matrix: pd.DataFrame,
     palette: List[str] = None,
     image_palette: np.ndarray = None,
-    solver: Literal["exact", "heuristic"] = "heuristic",
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
@@ -48,10 +47,7 @@ def assign_color(
         image_palette (np.ndarray, optional): an image in numpy array format. Should be a
             typical RGB image of shape (x, y, 3). Ignored if `palette` is given. See `Mode 2`
             above. Defaults to None.
-        solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver
-            backend. Used in `Mode 1` and `Mode 2`, set to "exact" for exact solution,
-            or "heuristic" for shorter runtime. See `tsp` for details. Defaults to "heuristic".
-        mapping_kwargs (dict, optional): arguments passed to `map_graph_tsp` function.
+        mapping_kwargs (dict, optional): arguments passed to `map_graph` function.
             Defaults to {}.
         embed_kwargs (dict, optional): arguments passed to `embed_graph` function.
             Defaults to {}.
@@ -73,8 +69,6 @@ def assign_color(
                 **embed_kwargs,
             )
 
-            # TODO: consider add tsp as downstream
-
             color_mapping = {
                 k: color_mapping[k] for k in sorted(list(color_mapping.keys()))
             }
@@ -93,12 +87,11 @@ def assign_color(
     lm.main_info(f"Calculating color distance graph...")
     color_distance_matrix = perceptual_distance(colors=palette) + 1e-5
 
-    # Map clusters and colors via tsp graph
+    # Map clusters and colors via graph
     lm.main_info(f"Optimizing color mapping...")
-    color_mapping = map_graph_tsp(
+    color_mapping = map_graph(
         cluster_distance=cluster_distance_matrix,
         color_distance=color_distance_matrix,
-        tsp_solver=solver,
         **mapping_kwargs,
     )
 

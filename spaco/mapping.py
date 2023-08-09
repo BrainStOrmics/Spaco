@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+import random
 from anndata import AnnData
 
 try:
@@ -10,31 +11,25 @@ except ImportError:
     from typing_extensions import Literal
 
 from .logging import logger_manager as lm
-from .utils import lab_to_hex, matrix_distance, tsp
+from .utils import lab_to_hex, matrix_distance
 
 
-def map_graph_tsp(
+def map_graph(
     cluster_distance: pd.DataFrame,
     color_distance: pd.DataFrame,
-    tsp_solver: Literal["exact", "heuristic"] = "heuristic",
-    reproducible: bool = True,
     random_seed: int = 123,
-    distance_metric: Literal["euclidean", "manhattan", "log"] = "manhattan",
+    distance_metric: Literal["euclidean", "manhattan", "log", "mul_1"] = "mul_1",
+    random_max_iter: int = 5000,
     verbose: bool = False,
 ) -> Dict[Any, str]:
     """
-    Function to map the vertices between two graph based on their longest loop, using
-    a traveling salesman problem (TSP) solver.
+    Function to map the vertices between two graph.
 
     Args:
         cluster_distance (pd.DataFrame): a `pandas.DataFrame` with unique cluster names as `index` and `columns`,
             which contains a distance adjacent matrix for clusters, representing the dissimilarity between clusters.
         color_distance (pd.DataFrame): a `pandas.DataFrame` with unique colors (in hex) as `index` and `columns`,
             which contains a distance adjacent matrix for colors, representing the perceptual difference between colors.
-        tsp_solver (Literal[&quot;exact&quot;, &quot;heuristic&quot;], optional): tsp solver backend. Defaults to "heuristic".
-        reproducible (bool): whether to guarantee reproducibility when using heuristic solver, if `True`,
-            heuristic result will be reproducible under same `random_seed`. If `False`, user can roll different
-            results and select their own optimal.
         random_seed (int): random seed for heuristic solver.
         distance_metric (Literal[&quot;euclidean&quot;, &quot;manhattan&quot;, &quot;log&quot;], optional): metric used for matrix mapping. Defaults to "manhattan".
         verbose (bool, optional): output info.
@@ -47,60 +42,51 @@ def map_graph_tsp(
         cluster_distance.shape == color_distance.shape
     ), "Clusters and colors are not in the same size."
 
-    # Calculate tsp loop for clusters and colors
-    lm.main_info(f"Solving TSP for cluster graph...", indent_level=2)
-    cluster_tsp_path, cluster_tsp_score = tsp(
-        distance_matrix=-cluster_distance.to_numpy(),
-        solver_backend=tsp_solver,
-        reproducible=reproducible,
-        random_seed=random_seed,
-    )
-    lm.main_info(f"Solving TSP for color graph...", indent_level=2)
-    color_tsp_path, color_tsp_score = tsp(
-        distance_matrix=-color_distance.to_numpy(),
-        solver_backend=tsp_solver,
-        reproducible=reproducible,
-        random_seed=random_seed,
-    )
-
-    if verbose:
-        lm.main_info(f"cluster_tsp_score: {cluster_tsp_score}")
-        lm.main_info(f"color_tsp_score: {color_tsp_score}")
-
-    # Reorder cluster distance matrix to match with cluster tsp loop
-    cluster_distance_tsp = np.transpose(cluster_distance.to_numpy()[cluster_tsp_path])[
-        cluster_tsp_path
-    ]
-
-    # rotate color tsp loop to find the best match with cluster tsp loop
-    lm.main_info(f"Optimizing cluster color mapping...")
-    color_tsp_path_rotator = np.concatenate((color_tsp_path, color_tsp_path), axis=0)
-
-    rotate_distance = 1e9
-    rotate_offset = 0
-    for i in range(len(color_distance)):
-        color_rotate_index = color_tsp_path_rotator[i : i + len(color_distance)]
-        color_distance_tsp_rotate = np.transpose(
-            color_distance.to_numpy()[color_rotate_index]
-        )[color_rotate_index]
-        rotate_distance_tmp = matrix_distance(
-            matrix_x=cluster_distance_tsp,
-            matrix_y=color_distance_tsp_rotate,
+    random.seed(random_seed)
+    
+    color_shuffle_index = list(range(color_distance.shape[0]))
+    shuffle_distance = 1e9
+    
+    for iseed in range(random_max_iter):
+        color_shuffle_index_tmp = color_shuffle_index.copy()
+        np.random.seed(iseed)
+        np.random.shuffle(color_shuffle_index_tmp)
+        color_distance_shuffle = np.transpose(
+            color_distance.to_numpy()[color_shuffle_index_tmp]
+        )[color_shuffle_index_tmp]
+        shuffle_distance_tmp = matrix_distance(
+            matrix_x=cluster_distance.to_numpy(),
+            matrix_y=color_distance_shuffle,
             metric=distance_metric,
         )
-        if rotate_distance_tmp <= rotate_distance:
-            rotate_distance = rotate_distance_tmp
-            rotate_offset = i
+        if (shuffle_distance_tmp < shuffle_distance):
+            shuffle_distance = shuffle_distance_tmp.copy()
+            color_shuffle_index = color_shuffle_index_tmp.copy()
+    
+    for siter in range(random_max_iter*2):
+        color_shuffle_index_tmp = color_shuffle_index.copy()
+        idx = random.sample(range(len(color_shuffle_index_tmp)), 2)
+        tmp = color_shuffle_index_tmp[idx[1]]
+        color_shuffle_index_tmp[idx[1]] = color_shuffle_index_tmp[idx[0]]
+        color_shuffle_index_tmp[idx[0]] = tmp
+        color_distance_shuffle = np.transpose(
+            color_distance.to_numpy()[color_shuffle_index_tmp]
+        )[color_shuffle_index_tmp]
+        shuffle_distance_tmp = matrix_distance(
+            matrix_x=cluster_distance.to_numpy(),
+            matrix_y=color_distance_shuffle,
+            metric=distance_metric,
+        )
+        if (shuffle_distance_tmp < shuffle_distance):
+            shuffle_distance = shuffle_distance_tmp.copy()
+            color_shuffle_index = color_shuffle_index_tmp.copy()
 
+    
     # Return color mapping dictionary, sorted by keys
     color_mapping = dict(
         zip(
-            cluster_distance.index[cluster_tsp_path],
-            color_distance.index[
-                color_tsp_path_rotator[
-                    rotate_offset : rotate_offset + len(color_distance)
-                ]
-            ],
+            cluster_distance.index,
+            color_distance.index[color_shuffle_index],
         )
     )
     color_mapping = {k: color_mapping[k] for k in sorted(list(color_mapping.keys()))}
@@ -111,7 +97,7 @@ def map_graph_tsp(
 def embed_graph(
     cluster_distance: pd.DataFrame,
     transformation: Literal["mds", "umap"] = "umap",
-    l_range: Tuple[float, float] = (10, 90),
+    l_range: Tuple[float, float] = (30, 80),
     log_colors: bool = False,
     trim_fraction: float = 0.0125,
 ) -> Dict[Any, str]:
@@ -187,9 +173,98 @@ def cluster_mapping_exp(
     mapping_gene_set: List[str] = None,
 ) -> List:
 
-    assert False, "under development."  # TODO: implement here
+    #assert False, "under development."  # TODO: implement here
+    adata.X = adata.layers['normalize']
 
-    return None
+    adata_sub = adata[:, mapping_gene_set]
+
+    adata_sub.X.shape
+
+    ct = adata_sub.obs[cluster_key].unique()
+    ct = list(ct.categories)
+
+    adf = pd.DataFrame(columns=ct, index=adata_sub.var.index) 
+
+    for i in ct:
+        val = adata_sub[adata_sub.obs[cluster_key] == i].X.mean(axis=0)
+        adf.loc[:,str(i)] = val.tolist()[0]
+    
+    
+    """
+    calculate mean expression percluster 2
+    """
+    adata_reference.X = adata_reference.layers['normalize']
+
+    adata_reference_sub = adata_reference[:, mapping_gene_set]
+
+    adata_reference_sub.X.shape
+
+    rct = adata_reference_sub.obs[cluster_key].unique()
+    rct = list(rct.categories)
+
+    rdf = pd.DataFrame(columns=rct, index=adata_reference_sub.var.index) 
+
+    for i in rct:
+        val = adata_reference_sub[adata_reference_sub.obs[cluster_key] == i].X.mean(axis=0)
+        rdf.loc[:,str(i)] = val.tolist()[0]
+    
+    """
+    calculate correlation matrix
+    """
+    
+    dfcor = pd.DataFrame(index=rdf.columns, columns=adf.columns)
+
+    for m in adf.columns:
+        for n in rdf.columns:
+            x = adf.loc[:, m]
+            y = rdf.loc[:, n]
+            dfcor.loc[n,m] = scipy.stats.pearsonr(x,y)[0]
+    
+    cor_mat = dfcor.values
+    
+    
+    cluster_label_mapping = adata.obs[cluster_key].to_list()
+    cluster_label_reference = adata_reference.obs[cluster_key].to_list()
+    mapping_label_list = adf.columns
+    reference_label_list = rdf.columns
+    
+
+    # Greedy mapping to the largest similarity of each label
+    relationship = {}
+    index_not_mapped = np.ones(len(mapping_label_list)).astype(bool)
+    cor_mat_backup = cor_mat.copy()
+    while np.sum(cor_mat) != 0:
+        reference_index, mapping_index = np.unravel_index(
+            cor_mat.argmax(), cor_mat.shape
+        )
+        relationship[mapping_label_list[mapping_index]] = reference_label_list[
+            reference_index
+        ]
+        # Clear mapped labels to avoid duplicated mapping
+        cor_mat[reference_index, :] = 0
+        cor_mat[:, mapping_index] = 0
+        index_not_mapped[mapping_index] = False
+
+    # Check if every label is mapped to a reference
+    duplicate_map_label = np.ones(len(reference_label_list))
+    for mapping_index, is_force_map in enumerate(index_not_mapped):
+        if is_force_map:
+            reference_index = cor_mat_backup[:, mapping_index].argmax()
+            relationship[mapping_label_list[mapping_index]] = (
+                reference_label_list[reference_index]
+                + ".%d" % duplicate_map_label[reference_index]
+            )
+            duplicate_map_label[reference_index] += 1
+            # Log: warning
+            lm.main_warning(
+                f"Mapping between cluster {mapping_label_list[mapping_index]} and cluster "
+                + f"{reference_label_list[reference_index]} is not bijective.",
+                indent_level=3,
+            )
+    mapped_cluster_label = np.frompyfunc(lambda x: relationship[x], 1, 1)(
+        cluster_label_mapping
+    )
+    return mapped_cluster_label.tolist()
 
 
 def cluster_mapping_iou(
