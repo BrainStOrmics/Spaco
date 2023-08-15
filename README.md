@@ -3,7 +3,7 @@
 [![python~=3.8](https://img.shields.io/badge/python-3.8-brightgreen)](https://www.python.org/)
 [![License: GPL3.0](https://img.shields.io/badge/License-GPL3.0-yellow)](https://opensource.org/license/gpl-3-0/)
 
-[Quick Example](https://github.com/BrainStOrmics/Spaco/blob/main/notebooks/demo.ipynb) - [Citation](https://github.com/BrainStOrmics/Spaco)
+[Quick Example](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) - [Citation](https://github.com/BrainStOrmics/Spaco)
 
 Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. Spaco (**spa**tial **co**lorization) provides a spatially constrained approach that generates discriminate color assignments for visualizing single-cell spatial data in various scenarios.
 
@@ -71,7 +71,7 @@ sc.pl.spatial(adata_cell, color="celltype_mapped_refined", spot_size=0.035, pale
 ```
 
 ### Tutorials and demo-cases
-- A brief [**demo**](https://github.com/BrainStOrmics/Spaco/blob/main/notebooks/demo.ipynb) is included in Spaco package.
+- A brief [**demo**](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) is included in Spaco package.
 
 ## Reproducibility
 Scripts to reproduce benchmarking and analytic results in Spaco paper are in repository [Spaco_scripts](https://github.com/BrainStOrmics/Spaco_scripts)
