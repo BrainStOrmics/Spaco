@@ -40,7 +40,7 @@ pip install git+https://github.com/BrainStOrmics/Spaco.git
 - logging-release>=0.0.4
 - typing_extensions>=4.0.0
 
-**NOTE THAT**: Currently we found numpy version (1.22.x or 1.23.x) could influence the result of graph-guided mode of Spaco; We are working on this; To reproduce the results in Spaco [vignette](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) or paper, please check the numpy version at the end of each jupyter notebook.
+**NOTE THAT**: Currently we found numpy version (1.22.x or 1.23.x) could influence the result of graph-guided mode of Spaco; However, colorization should be acceptable with either version; To exactly reproduce the results in Spaco [vignette](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) or paper, please check the numpy version at the end of each jupyter notebook.
 
 
 ## Usage
