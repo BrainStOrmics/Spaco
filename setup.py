@@ -18,9 +18,9 @@ setup(
     packages=["spaco"],
     author="Zehua Jing, Qianhua Zhu, Hailin Pan",
     author_email="jingzehua@genomics.cn",
-    description="Spaco2: Spatially constrained colorization for visualizing spatial data at single-cell resolution",
+    description="Spaco: a comprehensive tool for coloring spatial data at single-cell resolution",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="GPL",
-    url="https://github.com/Bai-Lab/Spaco",
+    url="https://github.com/BrainStOrmics/Spaco",
 )
