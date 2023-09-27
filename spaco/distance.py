@@ -5,8 +5,13 @@ import pandas as pd
 from scipy.spatial import distance
 from sklearn.neighbors import KDTree
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 from .logging import logger_manager as lm
-from .utils import color_difference_rgb
+from .utils import color_difference_rgb, simulate_cvd
 
 
 def spatial_distance(  # TODO: optimize neighbor calculation
@@ -107,7 +112,10 @@ def spatial_distance(  # TODO: optimize neighbor calculation
     return cluster_interlace_matrix
 
 
-def perceptual_distance(colors: List[str]) -> pd.DataFrame:
+def perceptual_distance(
+    colors: List[str], 
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
+) -> pd.DataFrame:
     """
     Function to calculate color perceptual difference matrix.
     See `color_difference_rgb` for details.
@@ -121,11 +129,19 @@ def perceptual_distance(colors: List[str]) -> pd.DataFrame:
     """
     difference_matrix = np.zeros([len(colors), len(colors)], dtype=np.float32)
 
-    # Calculate difference between colors
-    lm.main_info(f"Calculating color perceptual distance...", indent_level=2)
-    for i in range(len(colors)):
-        for j in range(len(colors)):
-            difference_matrix[i][j] = color_difference_rgb(colors[i], colors[j])
+    if colorblind_type!="none":
+        color_cvd = simulate_cvd(colors, colorblind_type=colorblind_type)
+        # Calculate difference between cvd colors
+        lm.main_info(f"Calculating color perceptual distance under {colorblind_type}...", indent_level=2)
+        for i in range(len(color_cvd)):
+            for j in range(len(color_cvd)):
+                difference_matrix[i][j] = color_difference_rgb(color_cvd[i], color_cvd[j])
+    else:
+        # Calculate difference between colors
+        lm.main_info(f"Calculating color perceptual distance...", indent_level=2)
+        for i in range(len(colors)):
+            for j in range(len(colors)):
+                difference_matrix[i][j] = color_difference_rgb(colors[i], colors[j])
 
     #difference_matrix = difference_matrix / np.sum(difference_matrix) * 1000
     

@@ -13,6 +13,7 @@ def assign_color(
     cluster_distance_matrix: pd.DataFrame,
     palette: List[str] = None,
     image_palette: np.ndarray = None,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
 ) -> Dict[Any, str]:
@@ -80,12 +81,12 @@ def assign_color(
                 f"Drawing appropriate colors from provided image...", indent_level=2
             )
             palette = extract_palette(
-                reference_image=image_palette, n_colors=len(cluster_distance_matrix)
+                reference_image=image_palette, n_colors=len(cluster_distance_matrix), colorblind_type=colorblind_type,
             )
 
     # Construct color perceptual distance matrix
     lm.main_info(f"Calculating color distance graph...")
-    color_distance_matrix = perceptual_distance(colors=palette) + 1e-5
+    color_distance_matrix = perceptual_distance(colors=palette, colorblind_type=colorblind_type,) + 1e-5
 
     # Map clusters and colors via graph
     lm.main_info(f"Optimizing color mapping...")

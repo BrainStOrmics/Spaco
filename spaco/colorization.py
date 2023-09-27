@@ -24,6 +24,7 @@ def colorize(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -123,6 +124,7 @@ def colorize(
         cluster_distance_matrix=cluster_distance_matrix,
         palette=palette,
         image_palette=image_palette,
+        colorblind_type=colorblind_type,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )
@@ -146,6 +148,7 @@ def colorize_mutiple_slices(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -299,6 +302,7 @@ def colorize_mutiple_slices(
         cluster_distance_matrix=cluster_distance_matrix_merged,
         palette=palette,
         image_palette=image_palette,
+        colorblind_type=colorblind_type,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )
@@ -319,6 +323,7 @@ def colorize_mutiple_runs(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -432,6 +437,7 @@ def colorize_mutiple_runs(
         cluster_distance_matrix=cluster_distance_matrix_merged,
         palette=palette,
         image_palette=image_palette,
+        colorblind_type=colorblind_type,
         mapping_kwargs=mapping_kwargs,
         embed_kwargs=embed_kwargs,
     )

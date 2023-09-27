@@ -108,6 +108,35 @@ def lab_to_hex(lab_code: Union[Tuple, List]) -> str:
     return rgb_object.get_rgb_hex()
 
 
+def rgb_to_lms_img(img: np.ndarray):
+    """
+    Convert RGB image matrix (0~255) to lms image matrix.
+    """
+    ## Implementation from https://gitlab.com/FloatFlow
+    lms_matrix = np.array(
+        [[0.3904725 , 0.54990437, 0.00890159],
+        [0.07092586, 0.96310739, 0.00135809],
+        [0.02314268, 0.12801221, 0.93605194]]
+        )
+    return np.tensordot(img, lms_matrix, axes=([2], [1]))
+
+
+def lms_to_rgb_img(img: np.ndarray):
+    """
+    Convert lms image matrix to RGB image matrix.
+    """
+    ## Implementation from https://gitlab.com/FloatFlow
+    rgb_matrix = np.array(
+        [[ 2.85831110e+00, -1.62870796e+00, -2.48186967e-02],
+        [-2.10434776e-01,  1.15841493e+00,  3.20463334e-04],
+        [-4.18895045e-02, -1.18154333e-01,  1.06888657e+00]]
+        )
+    rgb_img = np.tensordot(img, rgb_matrix, axes=([2], [1]))
+    rgb_img[rgb_img < 0] = 0
+    rgb_img[rgb_img > 255] = 255
+    return rgb_img
+
+
 def color_difference_rgb(color_x: str, color_y: str) -> float:
     """
     Calculate the perceptual difference between colors.
@@ -285,12 +314,34 @@ def _color_score(
     return ws * distance_to_convex_hull + wn * n + dist_e2000
 
 
+def simulate_cvd(
+    palette_hex,
+    colorblind_type: Literal["protanopia", "deuteranopia", "tritanopia"],
+):
+    ## Modified from https://gitlab.com/FloatFlow
+    palette_rgb_img = np.array([[hex_to_rgb(i) for i in palette_hex]])
+    palette_lms_img = rgb_to_lms_img(palette_rgb_img)
+    if colorblind_type.lower() in ['protanopia']:
+        sim_matrix = np.array([[0, 0.90822864, 0.008192], [0, 1, 0], [0, 0, 1]], dtype=np.float16)
+    elif colorblind_type.lower() in ['deuteranopia']:
+        sim_matrix =  np.array([[1, 0, 0], [1.10104433,  0, -0.00901975], [0, 0, 1]], dtype=np.float16)
+    elif colorblind_type.lower() in ['tritanopia']:
+        sim_matrix = np.array([[1, 0, 0], [0, 1, 0], [-0.15773032,  1.19465634, 0]], dtype=np.float16)
+    else:
+        raise ValueError('{} is an unrecognized colorblindness type.'.format(colorblind_type))
+    palette_lms_img = np.tensordot(palette_lms_img, sim_matrix, axes=([2], [1]))
+    palette_rgb_img = lms_to_rgb_img(palette_lms_img)
+    
+    return [rgb_to_hex(i) for i in palette_rgb_img[0]]
+
+
 def extract_palette(
     reference_image: np.ndarray,
     n_colors: int,
     l_range: Tuple[float, float] = (20, 85),
     trim_percentile: float = 0.03,
     max_iteration=20,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     verbose=False,
 ) -> List[str]:
     """
@@ -351,6 +402,12 @@ def extract_palette(
                 lab_distance = ciede2000(
                     lab1=lab_color_set[selected_index], lab2=lab_color_set[i]
                 )["delta_E_00"]
+                if colorblind_type!="none":
+                    color_cvd = simulate_cvd(
+                        np.array([lab_to_hex(lab_color_set[selected_index]),lab_to_hex(lab_color_set[i])]),
+                        colorblind_type=colorblind_type,
+                    )
+                    lab_distance = color_difference_rgb(color_cvd[0], color_cvd[1])
                 bin_color_count[j] *= 1 - np.exp(-np.power(lab_distance / sigma, 2))
 
     palette = np.array(list(palette.values()))
