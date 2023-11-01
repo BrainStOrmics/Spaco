@@ -18,13 +18,13 @@ from .mapping import cluster_mapping_exp, cluster_mapping_iou
 def colorize(
     cell_coordinates,
     cell_labels,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia", "general"],
     palette: List[str] = None,
     image_palette: np.ndarray = None,
     manual_mapping: Dict[Any, str] = None,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -139,6 +139,7 @@ def colorize(
 def colorize_mutiple_slices(
     adatas: List[AnnData],
     cluster_key: str,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia", "general"],
     slice_mapping: Literal["expression", "annotation"] = "annotation",
     mapping_gene_set: List[str] = None,
     spatial_key: str = "spatial",
@@ -148,7 +149,6 @@ def colorize_mutiple_slices(
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
@@ -317,13 +317,13 @@ def colorize_mutiple_slices(
 def colorize_mutiple_runs(
     adata: AnnData,
     cluster_keys: List[str],
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia", "general"],
     spatial_key: str = "spatial",
     palette: Optional[List[str]] = None,
     image_palette=None,
     neighbor_weight: float = 0.5,
     radius: float = 90,  # TODO: confirm default value
     n_neighbors: int = 16,  # TODO: confirm default value
-    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     neighbor_kwargs: dict = {},
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},

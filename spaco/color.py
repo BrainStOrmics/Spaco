@@ -11,9 +11,9 @@ from .utils import extract_palette
 
 def assign_color(
     cluster_distance_matrix: pd.DataFrame,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia", "general"],
     palette: List[str] = None,
     image_palette: np.ndarray = None,
-    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     mapping_kwargs: dict = {},
     embed_kwargs: dict = {},
 ) -> Dict[Any, str]:

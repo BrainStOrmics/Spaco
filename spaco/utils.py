@@ -338,10 +338,10 @@ def simulate_cvd(
 def extract_palette(
     reference_image: np.ndarray,
     n_colors: int,
+    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia", "general"],
     l_range: Tuple[float, float] = (20, 85),
     trim_percentile: float = 0.03,
     max_iteration=20,
-    colorblind_type: Literal["none", "protanopia", "deuteranopia", "tritanopia"] = "none",
     verbose=False,
 ) -> List[str]:
     """
@@ -403,11 +403,20 @@ def extract_palette(
                     lab1=lab_color_set[selected_index], lab2=lab_color_set[i]
                 )["delta_E_00"]
                 if colorblind_type!="none":
-                    color_cvd = simulate_cvd(
-                        np.array([lab_to_hex(lab_color_set[selected_index]),lab_to_hex(lab_color_set[i])]),
-                        colorblind_type=colorblind_type,
-                    )
-                    lab_distance = color_difference_rgb(color_cvd[0], color_cvd[1])
+                    if colorblind_type=="general":
+                        lab_distance = lab_distance / 4
+                        for cb_t in ["protanopia", "deuteranopia", "tritanopia"]:
+                            color_cvd = simulate_cvd(
+                                np.array([lab_to_hex(lab_color_set[selected_index]),lab_to_hex(lab_color_set[i])]),
+                                colorblind_type=cb_t,
+                            )
+                            lab_distance += color_difference_rgb(color_cvd[0], color_cvd[1]) / 4
+                    else:
+                        color_cvd = simulate_cvd(
+                            np.array([lab_to_hex(lab_color_set[selected_index]),lab_to_hex(lab_color_set[i])]),
+                            colorblind_type=colorblind_type,
+                        )
+                        lab_distance = color_difference_rgb(color_cvd[0], color_cvd[1])
                 bin_color_count[j] *= 1 - np.exp(-np.power(lab_distance / sigma, 2))
 
     palette = np.array(list(palette.values()))
