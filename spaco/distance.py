@@ -162,4 +162,6 @@ def perceptual_distance(
     difference_matrix.index = colors
     difference_matrix.columns = colors
 
+    lm.main_info(f"Difference of the most similar pair in the palette is {np.min(difference_matrix)}", indent_level=2)
+
     return difference_matrix
