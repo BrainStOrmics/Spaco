@@ -2,6 +2,7 @@
 
 [![python~=3.8](https://img.shields.io/badge/python-3.8-brightgreen)](https://www.python.org/)
 [![License: GPL3.0](https://img.shields.io/badge/License-GPL3.0-yellow)](https://opensource.org/license/gpl-3-0/)
+[![DOI](https://zenodo.org/badge/573317165.svg)](https://zenodo.org/doi/10.5281/zenodo.10113347)
 
 [Quick Example](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) - [Citation](https://github.com/BrainStOrmics/Spaco)
 
