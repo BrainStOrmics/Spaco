@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="UTF-8") as fh:
 
 
 setup(
-    name="spaco",
+    name="spaco-release",
     version="0.1.0",
     python_requires=">=3.7",
     install_requires=read_requirements("requirements.txt"),
