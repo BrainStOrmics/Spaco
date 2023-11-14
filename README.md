@@ -23,7 +23,13 @@ We provide a method for extracting color plates from images. While maintaining t
 ## Installation
 
 ```
+# Latest source from github (Recommended)
 pip install git+https://github.com/BrainStOrmics/Spaco.git
+```
+
+```
+# PyPI
+pip install spaco-release
 ```
 
 ## Enviroments
