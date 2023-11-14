@@ -156,12 +156,19 @@ def perceptual_distance(
                 difference_matrix[i][j] = color_difference_rgb(colors[i], colors[j])
 
     #difference_matrix = difference_matrix / np.sum(difference_matrix) * 1000
-    
+
+    min_difference = 1e9
+    for i in range(len(colors)):
+        for j in range(len(colors)):
+            if i==j:
+                continue
+            min_difference = min(min_difference, difference_matrix[i][j])
+
     lm.main_info(f"Constructing color distance graph...", indent_level=2)
     difference_matrix = pd.DataFrame(difference_matrix)
     difference_matrix.index = colors
     difference_matrix.columns = colors
 
-    lm.main_info(f"Difference of the most similar pair in the palette is {np.min(difference_matrix)}", indent_level=2)
+    lm.main_info(f"Difference of the most similar pair in the palette is {min_difference}", indent_level=2)
 
     return difference_matrix
