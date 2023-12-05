@@ -8,7 +8,7 @@
 
 Visualizing spatially resolved biological data with appropriate color mapping can significantly facilitate the exploration of underlying patterns and heterogeneity. Spaco (**spa**tial **co**lorization) provides a spatially constrained approach that generates discriminate color assignments for visualizing single-cell spatial data in various scenarios.
 
-![image](https://github.com/BrainStOrmics/Spaco/assets/37856906/922ca83d-e787-4a25-abee-826be91081ab)
+![image](https://github.com/BrainStOrmics/Spaco/assets/37856906/cf48b6fd-6a5b-4d0d-bc90-40877ab2ff3f)
 
 ## Features
 
