@@ -83,6 +83,7 @@ sc.pl.spatial(adata_cell, color="celltype_mapped_refined", spot_size=0.035, pale
 
 ### Tutorials and demo-cases
 - A brief [**demo**](https://github.com/BrainStOrmics/Spaco_scripts/blob/main/Vignette/Demo.ipynb) is included in Spaco package.
+- Please see our [**STAR Protocol**](https://doi.org/10.1016/j.xpro.2024.103062) for detailed description
 - Working with R? See [**SpacoR**](https://github.com/BrainStOrmics/SpacoR).
 
 ## Reproducibility
