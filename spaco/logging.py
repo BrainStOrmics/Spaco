@@ -1,3 +1,3 @@
-import lack
+from .external import lack
 
-logger_manager = lack.LoggerManager("spaco2", "spaco2-temp-timer-logger")
+logger_manager = lack.LoggerManager("Spaco", "Spaco-temp-timer-logger")
