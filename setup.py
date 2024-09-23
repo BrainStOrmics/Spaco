@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def read_requirements(path):
@@ -27,7 +27,7 @@ setup(
         'typing_extensions>=4.0.0',
         'umap-learn>=0.5.0',
     ],
-    packages=["spaco"],
+    packages=find_packages(),
     author="Zehua Jing, Qianhua Zhu, Hailin Pan",
     author_email="jingzehua@genomics.cn",
     description="Spaco: a comprehensive tool for coloring spatial data at single-cell resolution",
