@@ -12,7 +12,7 @@ with open("README.md", "r", encoding="UTF-8") as fh:
 
 setup(
     name="spaco-release",
-    version="0.2.1",
+    version="0.2.2",
     python_requires=">=3.7",
     #install_requires=read_requirements("requirements.txt"),
     install_requires=[
